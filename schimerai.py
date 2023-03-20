@@ -23,11 +23,25 @@ def schimerai(y : list, e : float, s : dict):
     """
     # Before anything, we upload the state of the AI from s.
     agent_count = s['agent_count'] # float
+    extra_data_agent_count = s['extra_data_agent_count'] # float
     prev_pred_diff = s['prev_pred_diff'] # float
     W = pd.DataFrame.from_dict(s['W']) # (agent_count x agent_count) matrix
     L = pd.DataFrame.from_dict(s['L']) # (agent_count x agent_count) matrix
     P = pd.DataFrame.from_dict(s['P']) # (agent_count x agent_count) matrix
     AV = pd.DataFrame.from_dict(s['AV']) # (agent_count x 1) list
+
+    # Replace the first extra_data_agent_count columns with the values from y.
+    AV[1:extra_data_agent_count] = y[1:extra_data_agent_count]
+
+    # If this is the first timestep, we need to initialize the state of the AI.
+    if s == {}:
+        agent_count = 100 #arbitary
+        extra_data_agent_count = 9 #arbitary
+        prev_pred_diff = 0
+        W = pd.DataFrame(np.ones((agent_count, agent_count)))
+        L = pd.DataFrame(np.ones((agent_count, agent_count)))
+        P = pd.DataFrame(np.zeros((agent_count, agent_count)))
+        AV = pd.DataFrame(np.ones((agent_count, 1)))
 
     """
             Update Step
