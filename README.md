@@ -1,44 +1,53 @@
 # Skater chimer·ai Implementation
 
-This repository implements the chimer·ai algorithm by Richard Zaldivar of [chimer.ai](http://chimer.ai/),  with "skater" functions, created and implemented by Dr. Peter Cotton, inventor of [microprediction](https://www.microprediction.com/) and writer of [Microprediction
-Building an Open AI Network](https://mitpress.mit.edu/9780262047326/), at https://github.com/microprediction/timemachines. 
+This repository implements the chimer·ai algorithm by Richard Zaldivar of [chimer.ai](http://chimer.ai/) using the algorithms created and implemented by Dr. Peter Cotton, inventor of [microprediction](https://www.microprediction.com/) and writer of [Microprediction
+Building an Open AI Network](https://mitpress.mit.edu/9780262047326/), at https://github.com/microprediction/microprediction.
 
 ## Algorithm + Implementation Summary
 
-The chimer·ai algorithm is a multi agent reinforcement learning algorithm that aims to create a group of agents that have a single way to communicate with each other and simply optimize the timestep in which they do so within the timesteps of an overall simulation.
+The chimer·ai algorithm is a multi agent reinforcement learning algorithm that aims to create a group of agents that have a single way to communicate with each other and simply optimize the timestep in which they do so within the timesteps of an overall simulation. This optimization is done by updating a beta binomial model for each agent.
 
-Skater functions take a single float input and an optional, but not guranteed, set of supplementary data and create a single float output for each timestep we want to predict. We can track a set of values between timesteps that are detailed on [this site](https://microprediction.github.io/timemachines/interface), but essentially we only use the input, y, the expiry time, e, and the state dictionary, s. The following algorithm details how we'll create a skater function out of the chimer·ai algorithm.
 
-## Skater chimer·ai Algorithm
+## Microchimerai Algorithm
 ### Variable Key
-agent_count; int = Total number of "agents" that we keep track of. This includes the first agent that provides input and the others that provide suplementary data as well.
+agent_count; int = Total number of "agents" that we keep track of. This includes 225 agents that provide our input from some source each timestep as well as an arbitrary number of additional agents at least of size 225 as well.
 
-W; (agent_count, agent_count) matrix =
+prev_pred_diff = This is the average difference between our guess for the 225 input values and the true 225 output. Depending on how this changes between timesteps we either consider the timestep a success or failure in terms of the beta binomial models.
 
-L; (agent_count, agent_count) matrix = 
+W; (agent_count, agent_count) matrix = This matrix tracks the "a"/alpha variable of each the beta-binomial model. There is a model for each agent's connection to each other and hence the size of the matrix. It is initialized to all 1's.
 
-P; (agent_count, agent_count) matrix = 
+L; (agent_count, agent_count) matrix = This matrix is functionally the same as W but tracks the "b"/beta value for the beta-binomials. It is initialized to all 1's.
 
-to be continued
+P; (agent_count, agent_count) matrix = This matrix is initialized to all zeroes and tracks the connections that were used from the last loop. This is passed to us the next time step so we can update accordingly once we receive the correct answer for the last timestep.
 
-
-### Input
-y: Vector of values to update our model with.
-
-e: A float that specifies how much time to allow before needing an output to submit it. Increase the amount depending on if we start to predict multiple times.
-
-s: A dictionary of our current state.
-
-### Output
-x: A float that is our prediction for y’s first index value’s next value
-
-m: Standard deviation for our estimate
-
-s: Our updated dictionary of our updated state
+AV; (1, agent_count) matrix = This matrix contains the float "value" of each agent. For the agents that are used to import data, this value is our input data. For the others, this value is preserved from last timestep.
 
 ### Algorithm
 
-1. Load
+Input: lagged_values ((1, 225) matrix)
 
+1. Subtract lagged_values from the first 225 values of AV and find the average value of that output. We'll call it avg_diff.
+
+2. If avg_diff is less than our prev_pred_diff, we have gotten more accurate and add our P matrix to W to represent adding a win to our beta-binomial model. We add it to L if we have gotten less accurate.
+
+3. Next we place lagged_values in the first 225 slots of AV so when the next timestep is run all agents have access to the new info.
+
+4. Generate a set of helper matrices to help with the prediction that will occur over the next couple steps. These include a matrix G which contains (a/(a+b)) for each beta-binomial model, H to contain the factors that we multiply by AV at the end to generate the predictions, and two arrays that list the indices of the connections to check.
+
+5. We generate our predictions by sampling a uniform [0,1] distribution and seeing which values of G are less than that. Each of those indices are used to queue a convolution on the corresponding two values in AV. Those convolutions are multiplied by the initial values of 1 of H to create a list of factors to multiply AV by and generate a prediction for all values in the next timestep.
+
+6. Update our prev_pred_diff with avg_diff and return our prediction.
+
+Return: prediction ((1, agent_count) matrix)
 
 ## Explanation
+
+The idea behind the chimer·ai algorithm is that random processes and trivial operations are the demonstrable foundation for many types of what we would consider intelligence in the real world. If we take the idea to the extreme, we can consider a bit that flips between 0 and 1 randomly. If we wanted it to seem like there was a pattern to the bit flipping to another person in order to trick them into thinking it had a pattern, what could we do?
+
+If we could stop the bit and then show people it, we could convince them it blinks in any pattern we want. What exaxtly are we doing here? Because we have no gurantee of any type of behavior from the random bit, there is no gurantee that we can trick others into an exact pattern. Basically the bit creates a pattern which effects our output by us trying to do the same to it. To zoom out a bit and give the random bit the respect it deserves we can see the person and bit as a system with 2 agents where each "freezes" the other while they undergo a random process from the perspective of the frozen agent. Some state of the random process triggers the other to start which causes the current one to freeze (there's probably some neat comparison to the halting problem but maybe I'll get to that at some point ;) ). Regardless, if you placed a big box around the world with a window that only showed the bit, it would look like it was always 1.
+
+Re
+
+
+
+
