@@ -14,7 +14,7 @@ class MicroChimerai(MicroCrawler):
         self.W = pd.DataFrame(np.ones((self.agent_count, self.agent_count)))
         self.L = pd.DataFrame(np.ones((self.agent_count, self.agent_count)))
         self.P = pd.DataFrame(np.zeros((self.agent_count, self.agent_count)))
-        self.AV = pd.DataFrame(np.ones((self.agent_count, 1)))
+        self.AV = pd.DataFrame(np.ones((self.agent_count)))
 
     def sample(self, lagged_values, lagged_times=None, name=None, delay=None, **ignored):
         # First we update the W and L matrices based on if we got the previous prediction correct or not.
@@ -25,7 +25,7 @@ class MicroChimerai(MicroCrawler):
 
         # Create all matrices needed to calculate the prediction for the next timestep.
         G = self.W.div(self.W.add(self.L))
-        H = pd.DataFrame(np.ones(self.agent_count, 1))
+        H = pd.DataFrame(np.ones(self.agent_count))
         r = uniform(0, 1)
         queued_connections_row, queued_connections_col = np.where(G<r)
 
@@ -54,9 +54,9 @@ class MicroChimerai(MicroCrawler):
     def create_prediction(self, queued_rows, queued_cols, H_matrix):
         for i,j in zip(queued_rows, queued_cols):
             self.P.iat[i,j] = 1
-            x_n, y_n = e_conv(self.AV[i].values[0], self.AV[j].values[0])
-            H_matrix[i] *= x_n
-            H_matrix[j] *= y_n
+            x_n, y_n = e_conv(self.AV.iloc[i], self.AV.iloc[j])
+            H_matrix.loc[i] = H_matrix.loc[i].mul(x_n)
+            H_matrix.loc[j] = H_matrix.loc[j].mul(y_n)
 
         self.AV = self.AV.mul(H_matrix)
         curr_prediction = self.AV[0].values[0]
@@ -68,7 +68,7 @@ This function convolves the float values of x and y using rotation matrices to c
 improve x and y if the model learns the timing to apply the operation as opposed to improving an operation like other
 models.
 """
-def e_conv(x, y):
+def e_conv(x : float, y : float):
     x_new = x*cos(x*y) - y*sin(x*y)
     y_new = x*sin(x*y) + y*cos(x*y)
     return x_new, y_new
