@@ -1,4 +1,4 @@
-# Skater chimer·ai Implementation
+# Microprediction - chimer·ai (MicroChimerai) Implementation
 
 This repository implements the chimer·ai algorithm by Richard Zaldivar of [chimer.ai](http://chimer.ai/) using the algorithms created and implemented by Dr. Peter Cotton, inventor of [microprediction](https://www.microprediction.com/) and writer of [Microprediction
 Building an Open AI Network](https://mitpress.mit.edu/9780262047326/), at https://github.com/microprediction/microprediction.
