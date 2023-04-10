@@ -3,8 +3,6 @@ import torch.nn as nn
 import torch.nn.functional as F
 from opt_einsum import contract
 from einops import rearrange
-from random import choice
-from itertools import chain
 
 class HyenaOperator(nn.Module):
     """
@@ -16,14 +14,15 @@ class HyenaOperator(nn.Module):
         """
         Initialize the HyenaOperator.
 
-        :param d_model: Input and output dimensions (int)
-        :param L: Maximum input sequence length (int)
-        :param H: Width of the FFN (int)
-        :param channels: Number of channels in the input (int)
-        :param dropout: Dropout probability (float)
-        :param kernel_learning_rate: Learning rate of the kernel (float)
-        :param kernel_lam: Regularization parameter for the kernel (float)
-        :param kernel_dropout: Dropout probability for the kernel (float)
+        Args:
+            d_model (int): Input and output dimensions.
+            L (int): Maximum input sequence length.
+            H (int): Width of the FFN.
+            channels (int): Number of channels in the input.
+            dropout (float): Dropout probability.
+            kernel_learning_rate (float): Learning rate of the kernel.
+            kernel_lam (float): Regularization parameter for the kernel.
+            kernel_dropout (float): Dropout probability for the kernel.
         """
         super().__init__()
         self.H = H
@@ -44,8 +43,6 @@ class HyenaOperator(nn.Module):
         )
 
         self.kernel = torch.nn.Parameter(torch.randn(self.channels, self.H, self.L) * 0.002)
-
-        self.register("kernel", self.kernel, kernel_learning_rate)
 
     def forward(self, u):
         L = u.size(-1)
