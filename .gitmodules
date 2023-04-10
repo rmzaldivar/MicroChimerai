@@ -1,0 +1,6 @@
+[submodule "butterfly"]
+	path = butterfly
+	url = https://github.com/HazyResearch/butterfly.git
+[submodule "safari"]
+	path = safari
+	url = https://github.com/HazyResearch/safari.git
